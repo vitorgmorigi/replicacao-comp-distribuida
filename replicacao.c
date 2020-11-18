@@ -1,26 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct Pessoa {
+typedef struct Pessoa
+{
     char nome[20];
     unsigned int idade;
     float altura;
 } pessoa_p;
 
-int menuInicial() {
+int menuInicial()
+{
     printf("Insira a opcao desejada: \n");
     printf("1 - Cadastrar usuario\n");
     printf("2 - Deletar usuario\n");
     printf("3 - Listar usuarios\n");
-    
+    printf("Para sair, pressione qualquer outro botao\n");
+
     int opcaoEscolhida;
-    
+
     scanf("%d", &opcaoEscolhida);
 
     return opcaoEscolhida;
 }
 
-void insere(FILE* ptr) {
+void insere(FILE *ptr)
+{
     pessoa_p p;
 
     printf("Digite o nome: ");
@@ -40,28 +44,31 @@ void insere(FILE* ptr) {
 
 int main(void)
 {
-    FILE* ptr;
-    char* filename = "./arq_teste.txt";
-    char* modo_gravacao = "a"; // modo de gravação "append" (adiciona no final)
+    FILE *ptr;
+    char *filename = "./arq_teste.txt";
+    char *modo_gravacao = "a"; // modo de gravação "append" (adiciona no final)
 
     if ((ptr = fopen(filename, modo_gravacao)) == NULL) {
         puts("Erro ao abrir o arquivo!");
         return 1;
     }
+    int opcaoEscolhida;
+    do {
+        opcaoEscolhida = menuInicial();
 
-    int opcaoEscolhida = menuInicial();
-
-    if(opcaoEscolhida == 1) {
-        insere(ptr);
-    } else if(opcaoEscolhida == 2) {
-        printf("Ainda nao implementado...");
-    } else {
-        printf("Ainda nao implementado...");
-    }
-
-
-    fclose(ptr);
-
-    puts("Arquivo gravado com sucesso!");
-    return 0;
+        if (opcaoEscolhida == 1) {
+            insere(ptr);
+            fclose(ptr);
+            puts("Arquivo gravado com sucesso!\n");
+        }
+        else if (opcaoEscolhida == 2) {
+            printf("Ainda nao implementado...\n");
+        }
+        else if (opcaoEscolhida == 3) {
+            printf("Ainda nao implementado...\n");
+        }
+        else {
+            return 0;
+        }
+    } while (opcaoEscolhida >= 1 && opcaoEscolhida <= 3);
 }
