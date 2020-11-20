@@ -30,18 +30,19 @@ FILE* abreArquivoW(FILE* arquivo, char* filename, char* permissao){
 }
 
 void escreveArquivo(FILE* arquivo, pessoa_p pessoa, char* filename, char* permissao){
+
    
     arquivo = abreArquivoW(arquivo, filename, permissao);
-    fwrite(&pessoa, sizeof(pessoa_p), 1, arquivo); 
+	fprintf(arquivo, "[%s]\t[%d]\n", pessoa.nome, pessoa.idade);
     fclose(arquivo);
     printf("Arquivo Escrito com Sucesso!!!!!\n\n\n");
 }
 
-int* capturaDados() {
+pessoa_p capturaDados() {
  
     pessoa_p pessoa;    
 
-    int* buffer = (int*) malloc(sizeof(pessoa_p));    
+    // int* buffer = (int*) malloc(sizeof(pessoa_p));    
 
     printf("Digite o nome: ");
     scanf("%s", pessoa.nome);
@@ -51,9 +52,9 @@ int* capturaDados() {
     scanf("%d", &pessoa.idade);
     printf("\n");
 
-    memcpy(buffer, &pessoa, sizeof(pessoa_p));    
+    // memcpy(buffer, &pessoa, sizeof(pessoa_p));    
 
-    return buffer;
+    return pessoa;
 }
 
 int get_structMPI(){
@@ -85,16 +86,29 @@ int main(int argc, char** argv){
     int appBuffer[sizeof(pessoa_p)];
 
     if(rank == 0) {
-	int destino = 1;
-	pessoa_p pessoa;
-	strncpy(pessoa.nome, "Julio", 19);
-//	pessoa.nome[19] = '\0';
-	pessoa.idade = 24;
 
-	printf(" Rank %d: Enviou: nome = %s idade = %d \n\n\n", rank, pessoa.nome, pessoa.idade);
+	int opcaoEscolhida;
+    do {
+        opcaoEscolhida = menuInicial();
 
-	MPI_Send(&pessoa, 1, stat_type, destino, tag, MPI_COMM_WORLD);
-	printf("front-end enviando dados atraves de um buffer para o replica-manager-1\n\n\n");
+        if (opcaoEscolhida == 1) {
+			int destino = 1;
+            pessoa_p pessoa = capturaDados();
+            MPI_Send(&pessoa, 1, stat_type, destino, tag, MPI_COMM_WORLD);
+			printf("front-end enviando dados atraves de um buffer para o replica-manager-1\n\n\n");
+        }
+        else if (opcaoEscolhida == 2) {
+            printf("Ainda nao implementado...\n");
+        }
+        else if (opcaoEscolhida == 3) {
+            printf("Ainda nao implementado...\n");
+        }
+        else {
+            return 0;
+        }
+    } while (opcaoEscolhida >= 1 && opcaoEscolhida <= 3);
+
+
     } else {
 	
 	 pessoa_p pessoa;
