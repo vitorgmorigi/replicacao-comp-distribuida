@@ -4,14 +4,15 @@
 #include <string.h>
 #include <time.h>
 
-typedef struct carro {
-    int shifts;
-    int topSpeed;
-} carro_c;
+typedef struct Pessoa {
+    char nome[20];
+    int idade;
+    float altura;
+} pessoa_p;
 
 int menuInicial() {
     printf("Insira a opcao desejada: \n");
-    printf("1 - Cadastrar carro\n");
+    printf("1 - Cadastrar usuario\n");
     printf("2 - Deletar usuario\n");
     printf("3 - Listar usuarios\n");
     
@@ -29,24 +30,30 @@ FILE* abreArquivoW(FILE* arquivo, char* filename, char* permissao){
     return arquivo;
 }
 
-void escreveArquivo(FILE* arquivo, carro_c carro, char* filename, char* permissao){
+void escreveArquivo(FILE* arquivo, pessoa_p pessoa, char* filename, char* permissao){
    
     abreArquivoW(arquivo, filename, permissao);
-    fwrite(&carro, sizeof(carro_c), 1, arquivo); 
+    fwrite(&pessoa, sizeof(pessoa_p), 1, arquivo); 
     fclose(arquivo);
 }
 
-carro_c capturaDados(carro_c carro) {
+pessoa_p capturaDados() {
+ 
+    pessoa_p pessoa;
    
-    printf("Digite a qtd marchas: ");
-    scanf("%d", &carro.shifts);
+    printf("Digite o nome: ");
+    scanf("%s", pessoa.nome);
     printf("\n");
 
-    printf("Digite a velocidade maxima: ");
-    scanf("%d", &carro.topSpeed);
+    printf("Digite a idade: ");
+    scanf("%d", &pessoa.idade);
     printf("\n");
 
-    return carro;
+    printf("Digite a altura: ");
+    scanf("%f", &pessoa.altura);
+    printf("\n");
+
+    return pessoa;
 }
 
 int main(int argc, char** argv){
@@ -62,20 +69,23 @@ int main(int argc, char** argv){
     if(size < 4){
 	fprintf(stderr,"Requer pelo menos 4 processos livres. \n");
     }
-    const int qtd = 2;
+    const int qtd = 3;
     int tamanhoBlocos[qtd];
     MPI_Datatype tipos[qtd];
     MPI_Datatype stat_type;
-    MPI_Aint int_length, offsets[qtd];                 //Vetor que segmenta os offsets para cada variavel pertencente a struct *//
+    MPI_Aint char_length, int_length, offsets[qtd];                 //Vetor que segmenta os offsets para cada variavel pertencente a struct *//
 
-    tamanhoBlocos[0] = 1;
+    tamanhoBlocos[0] = 30;
     tamanhoBlocos[1] = 1;
+    tamanhoBlocos[2] = 1;
 
-    tipos[0] = MPI_INT;
+    tipos[0] = MPI_CHAR;
     tipos[1] = MPI_INT;
+    tipos[2] = MPI_DOUBLE;
 
     offsets[0] = 0;
-    offsets[1] = int_length;
+    offsets[1] = char_length * 30;
+    offsets[2] = char_length * 30 + int_length;
 
     MPI_Type_create_struct(qtd, tamanhoBlocos, offsets, tipos, &stat_type);
     MPI_Type_commit(&stat_type);
@@ -84,43 +94,37 @@ int main(int argc, char** argv){
 	opcaoEscolhida = menuInicial();
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
-   
+
     if(rank == 0) {
    	 if(opcaoEscolhida == 1){
 	
-		carro_c carro;
-		int shiftsx, topSpeeds;
-		scanf("%d", &shiftsx);
-		scanf("%d", &topSpeeds); 
-	     
-		carro.shifts = shiftsx;
-		carro.topSpeed = topSpeeds;
-
+		printf("processo %d entrou aqui\n",rank);	
+		pessoa_p pessoa = capturaDados();
+     
 		printf("tambem cheguei aqui %d hahahahah",rank);
-		MPI_Send(&carro, sizeof(carro_c), stat_type, 1, tag, MPI_COMM_WORLD);
+		MPI_Send(&pessoa, 1, stat_type, 1, tag, MPI_COMM_WORLD);
 		printf("front-end enviando dados atraves de um buffer para o replica-manager-1\n");
 	}
     } else {
 	if (rank == 1) {
-		carro_c carro;
+		pessoa_p pessoa;
 		FILE* ptr;
 		char* filename = ("replica-manager.txt");
 		char* permissao = "a";
 		const int origem = 1;
 		
-		MPI_Recv(&carro, 1, stat_type, origem, tag, MPI_COMM_WORLD, &status);
-		escreveArquivo(ptr, carro, filename, permissao);
+		MPI_Recv(&pessoa, 1, stat_type, origem, tag, MPI_COMM_WORLD, &status);
+		escreveArquivo(ptr, pessoa, filename, permissao);
 		printf("replica-manager-1 recebeu o buffer do front-end e adicionou o conteudo no banco-de-dados\n");
 
 		int iterator;
 
 		for(iterator = rank + 1; iterator <= 3; iterator++){
-			MPI_Send(&carro, 1, stat_type, iterator, tag, MPI_COMM_WORLD);
+			MPI_Send(&pessoa, 1, stat_type, iterator, tag, MPI_COMM_WORLD);
 			printf("replica-manager-%d replicou banco-de-dados para o replica-manager%d \n",rank,iterator); 	
 		}
 	} else if (rank > 1) {
-		carro_c carro;
+		pessoa_p pessoa;
 		FILE* ptr;
 		char* filename;
 		const int origem = 1;
@@ -132,8 +136,8 @@ int main(int argc, char** argv){
 		}
 		char* permissao = "a";		
 	
-		MPI_Recv(&carro, 1, stat_type, origem, tag, MPI_COMM_WORLD, &status);
-		escreveArquivo(ptr, carro, filename, permissao);
+		MPI_Recv(&pessoa, 1, stat_type, origem, tag, MPI_COMM_WORLD, &status);
+		escreveArquivo(ptr, pessoa, filename, permissao);
 		printf("replica-manager-%d atualizado e consistente, backup realizado com sucesso\n",rank);
 		}
 	  }	
