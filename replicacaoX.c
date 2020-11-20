@@ -12,8 +12,7 @@ typedef struct Pessoa {
 int menuInicial() {
     printf("Insira a opcao desejada: \n");
     printf("1 - Cadastrar usuario\n");
-    printf("2 - Deletar usuario\n");
-    printf("3 - Listar usuarios\n");
+    printf("2 - Listar usuarios\n");
     
     int opcaoEscolhida;
     
@@ -39,10 +38,7 @@ void escreveArquivo(FILE* arquivo, pessoa_p pessoa, char* filename, char* permis
 }
 
 pessoa_p capturaDados() {
- 
-    pessoa_p pessoa;    
-
-    // int* buffer = (int*) malloc(sizeof(pessoa_p));    
+    pessoa_p pessoa;
 
     printf("Digite o nome: ");
     scanf("%s", pessoa.nome);
@@ -52,8 +48,6 @@ pessoa_p capturaDados() {
     scanf("%d", &pessoa.idade);
     printf("\n");
 
-    // memcpy(buffer, &pessoa, sizeof(pessoa_p));    
-
     return pessoa;
 }
 
@@ -61,10 +55,10 @@ int get_structMPI(){
 
 	const int qtd = 2;
 	
-	int tamanhoBlocos[qtd]; tamanhoBlocos[0] = 30; tamanhoBlocos[1] = 1; // tamanhoBlocos[2] = 1;
-	MPI_Datatype tipos[qtd]; tipos[0] = MPI_CHAR; tipos[1] = MPI_INT; //tipos[2] = MPI_FLOAT;
+	int tamanhoBlocos[qtd]; tamanhoBlocos[0] = 30; tamanhoBlocos[1] = 1;
+	MPI_Datatype tipos[qtd]; tipos[0] = MPI_CHAR; tipos[1] = MPI_INT;
 	MPI_Datatype stat_type;
-	MPI_Aint offsets[qtd]; offsets[0] = 0; offsets[1] = sizeof(char) * 20; //offsets[2] = sizeof(char) * 30 + sizeof(int);
+	MPI_Aint offsets[qtd]; offsets[0] = 0; offsets[1] = sizeof(char) * 20;
 	MPI_Type_create_struct(qtd, tamanhoBlocos, offsets, tipos, &stat_type);
 	MPI_Type_commit(&stat_type);
 
@@ -83,31 +77,35 @@ int main(int argc, char** argv){
 
     MPI_Datatype stat_type = get_structMPI();
 
-    int appBuffer[sizeof(pessoa_p)];
-
     if(rank == 0) {
 
-	int opcaoEscolhida;
-    do {
-        opcaoEscolhida = menuInicial();
+		while (1) {
+			int opcaoEscolhida = menuInicial();
 
-        if (opcaoEscolhida == 1) {
-			int destino = 1;
-            pessoa_p pessoa = capturaDados();
-            MPI_Send(&pessoa, 1, stat_type, destino, tag, MPI_COMM_WORLD);
-			printf("front-end enviando dados atraves de um buffer para o replica-manager-1\n\n\n");
-        }
-        else if (opcaoEscolhida == 2) {
-            printf("Ainda nao implementado...\n");
-        }
-        else if (opcaoEscolhida == 3) {
-            printf("Ainda nao implementado...\n");
-        }
-        else {
-            return 0;
-        }
-    } while (opcaoEscolhida >= 1 && opcaoEscolhida <= 3);
+			if (opcaoEscolhida == 1) {
+				int destino = 1;
+				pessoa_p pessoa = capturaDados();
+				MPI_Send(&pessoa, 1, stat_type, destino, tag, MPI_COMM_WORLD);
+				printf("front-end enviando dados atraves de um buffer para o replica-manager-1\n\n\n");
+			}
+			else if (opcaoEscolhida == 2) {
+				FILE* ptr;
+				char* filename = "replica-manager.txt";
+				char* permissao = "r";
+				const int origem = 0;
+				char str[1024];
 
+				ptr = fopen(filename, permissao);
+				fread(str, strlen(str)+1, 1000, ptr);
+				printf("%s\n", str);
+				fclose(ptr);
+
+			}
+			else {
+				return 0;
+			}
+		}
+    
 
     } else {
 	
