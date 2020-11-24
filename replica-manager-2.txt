@@ -12,3 +12,4 @@
 [Vitor]	[20]
 [Julio]	[22]
 [ABC]	[10]
+[Vitor]	[10]

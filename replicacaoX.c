@@ -55,12 +55,6 @@ pessoa_p capturaDados()
 	return pessoa;
 }
 
-// void enviaDados(int rank, int tag)
-// {
-// 	int destino = 0;
-// 	MPI_Send(&pessoa, 1, stat_type, destino, tag, MPI_COMM_WORLD);
-// }
-
 int get_structMPI()
 {
 
@@ -97,40 +91,34 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
+		opcaoEscolhida = menuInicial();
+		int destino = 1;
+		MPI_Send(&opcaoEscolhida, 1, MPI_INT, destino, tag, MPI_COMM_WORLD);
 
-		while (1)
+		if (opcaoEscolhida == 1)
 		{
-			opcaoEscolhida = menuInicial();
-			int destino = 1;
-			MPI_Send(&opcaoEscolhida, 1, MPI_INT, destino, tag, MPI_COMM_WORLD);
-
-			if (opcaoEscolhida == 1)
-			{
-				pessoa_p pessoa = capturaDados();
-				MPI_Send(&pessoa, 1, stat_type, destino, tag, MPI_COMM_WORLD);
-				printf("front-end enviando dados atraves de um buffer para o replica-manager-1\n\n\n");
-			}
-			else if (opcaoEscolhida == 2)
-			{
-				FILE *ptr;
-				char *filename = "replica-manager.txt";
-				char *permissao = "r";
-				const int origem = 1;
-				char str[1024];
-				pessoa_p pessoa;
-
-				ptr = fopen(filename, permissao);
-
-				MPI_Recv(&str, sizeof(str), MPI_CHAR, origem, tag, MPI_COMM_WORLD, &status);
-				// fread(str, strlen(str)+1, 1000, ptr);
-				printf("%s\n", str);
-				fclose(ptr);
-			}
-			else
-			{
-				return 0;
-			}
+			pessoa_p pessoa = capturaDados();
+			MPI_Send(&pessoa, 1, stat_type, destino, tag, MPI_COMM_WORLD);
+			printf("front-end enviando dados atraves de um buffer para o replica-manager-1\n\n\n");
 		}
+		else if (opcaoEscolhida == 2)
+		{
+			FILE *ptr;
+			char *filename = "replica-manager.txt";
+			char *permissao = "r";
+			const int origem = 1;
+			char str[1024];
+
+			ptr = fopen(filename, permissao);
+
+			MPI_Recv(&str, sizeof(str), MPI_CHAR, origem, tag, MPI_COMM_WORLD, &status);
+			printf("Sou o Frontend e recebi a resposta do replica-manager-1\n");
+			printf("%s\n", str);
+			fclose(ptr);
+		}
+
+		return 0;
+		
 	}
 	else
 	{
@@ -141,7 +129,7 @@ int main(int argc, char **argv)
 		{
 			const int origem = 0;
 			MPI_Recv(&opcaoEscolhida, 1, MPI_INT, origem, tag, MPI_COMM_WORLD, &status);
-			printf("Sou o processo %d e meu valor de opcaoEscolhida eh %d", rank, opcaoEscolhida);
+			printf("Sou o processo %d e meu valor de opcaoEscolhida eh %d\n", rank, opcaoEscolhida);
 
 			if (opcaoEscolhida == 1) {
 				FILE *ptr;
