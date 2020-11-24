@@ -129,7 +129,6 @@ int main(int argc, char **argv)
 		{
 			const int origem = 0;
 			MPI_Recv(&opcaoEscolhida, 1, MPI_INT, origem, tag, MPI_COMM_WORLD, &status);
-			printf("Sou o processo %d e meu valor de opcaoEscolhida eh %d\n", rank, opcaoEscolhida);
 
 			if (opcaoEscolhida == 1) {
 				FILE *ptr;
