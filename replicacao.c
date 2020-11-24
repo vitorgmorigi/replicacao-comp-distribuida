@@ -55,6 +55,21 @@ pessoa_p capturaDados()
 	return pessoa;
 }
 
+//
+//          +------ offset para
+//          |    bloco 2: sizeof(char) * 20
+//          |            |
+//    offset para        |
+//      bloco 1: 0       |
+//          |            |
+//          V            V
+//          +------------+------------+
+//          |    nome    |   idade    |
+//          +------------+------------+
+//           <----------> <---------->
+//              bloco 1      bloco 2
+//           20 MPI_CHAR    1 MPI_INT
+
 int get_structMPI()
 {
 
