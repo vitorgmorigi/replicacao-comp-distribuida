@@ -112,7 +112,8 @@ int main(int argc, char **argv)
 			ptr = fopen(filename, permissao);
 
 			MPI_Recv(&str, sizeof(str), MPI_CHAR, origem, tag, MPI_COMM_WORLD, &status);
-			printf("Sou o Frontend e recebi a resposta do replica-manager-1\n");
+			printf("Front-end: Listagem recebida!\n\n");
+			printf("Lista de usuarios cadastrados:\n");
 			printf("%s\n", str);
 			fclose(ptr);
 		}
@@ -159,6 +160,8 @@ int main(int argc, char **argv)
 				pessoa_p pessoa;
 
 				ptr = fopen(filename, permissao);
+
+				printf("Replica-manager-1: gerando a listagem para o front-end...\n");
 
 				fread(str, strlen(str)+1, 1000, ptr);
 
