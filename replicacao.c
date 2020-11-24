@@ -103,19 +103,19 @@ int main(int argc, char **argv)
 		}
 		else if (opcaoEscolhida == 2)
 		{
-			FILE *ptr;
+			FILE *arquivo;
 			char *filename = "replica-manager.txt";
 			char *permissao = "r";
 			const int origem = 1;
 			char str[1024];
 
-			ptr = fopen(filename, permissao);
+			arquivo = fopen(filename, permissao);
 
 			MPI_Recv(&str, sizeof(str), MPI_CHAR, origem, tag, MPI_COMM_WORLD, &status);
 			printf("Front-end: Listagem recebida!\n\n");
 			printf("Lista de usuarios cadastrados:\n");
 			printf("%s\n", str);
-			fclose(ptr);
+			fclose(arquivo);
 		}
 
 		return 0;
@@ -132,14 +132,14 @@ int main(int argc, char **argv)
 			MPI_Recv(&opcaoEscolhida, 1, MPI_INT, origem, tag, MPI_COMM_WORLD, &status);
 
 			if (opcaoEscolhida == 1) {
-				FILE *ptr;
+				FILE *arquivo;
 				char *filename = ("replica-manager.txt");
 				char *permissao = "a";
 
 				MPI_Recv(&pessoa, 1, stat_type, origem, tag, MPI_COMM_WORLD, &status);
 				printf("Rank %d: Recebeu: nome = %s idade %d\n\n\n", rank, pessoa.nome, pessoa.idade);
 
-				escreveArquivo(ptr, pessoa, filename, permissao);
+				escreveArquivo(arquivo, pessoa, filename, permissao);
 				printf("replica-manager-1 recebeu o buffer do front-end e adicionou o conteudo no banco-de-dados\n\n\n");
 
 				int iterator = 1;
@@ -152,18 +152,18 @@ int main(int argc, char **argv)
 				}
 			}
 			else if (opcaoEscolhida == 2) {
-				FILE *ptr;
+				FILE *arquivo;
 				char *filename = "replica-manager.txt";
 				char *permissao = "r";
 				const int destino = 0;
 				char str[1024];
 				pessoa_p pessoa;
 
-				ptr = fopen(filename, permissao);
+				arquivo = fopen(filename, permissao);
 
 				printf("Replica-manager-1: gerando a listagem para o front-end...\n");
 
-				fread(str, strlen(str)+1, 1000, ptr);
+				fread(str, strlen(str)+1, 1000, arquivo);
 
 				MPI_Send(&str, sizeof(str), MPI_CHAR, destino, tag, MPI_COMM_WORLD);
 			}
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 		else if (rank > 1)
 		{
 
-			FILE *ptr;
+			FILE *arquivo;
 			char *filename;
 			const int origem = 1;
 
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 			char *permissao = "a";
 
 			MPI_Recv(&pessoa, 1, stat_type, origem, tag, MPI_COMM_WORLD, &status);
-			escreveArquivo(ptr, pessoa, filename, permissao);
+			escreveArquivo(arquivo, pessoa, filename, permissao);
 			printf("replica-manager-%d atualizado e consistente, backup realizado com sucesso\n\n\n", rank);
 		}
 	}
