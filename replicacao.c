@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 
 				fread(str, strlen(str)+1, 1000, arquivo);
 
-				MPI_Send(&str, sizeof(str), MPI_CHAR, destino, tag, MPI_COMM_WORLD);
+				MPI_Send(&str, sizeof(str)-sizeof("\n"), MPI_CHAR, destino, tag, MPI_COMM_WORLD);
 			}
 
 		}
